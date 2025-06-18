@@ -16,7 +16,7 @@ CT031 - Cadastrar produto com usuário autenticado
     ${login}=    Create Dictionary    email=${email}    password=${senha}
     ${res}=    POST On Session    serve    /login    json=${login}
     ${token}=    Set Variable    ${res.json()["authorization"]}
-    ${headers}=    Create Dictionary    Authorization=Bearer ${token}
+    ${headers}=    Create Dictionary    Authorization=${token}
     ${produto}=    Create Dictionary    nome=Produto${rand}    preco=99    descricao=Produto Teste    quantidade=10
     ${res_prod}=    POST On Session    serve    /produtos    headers=${headers}    json=${produto}
     Status Should Be    201    ${res_prod}
@@ -31,7 +31,7 @@ CT032 - Cadastrar produto com nome já existente
     ${login}=    Create Dictionary    email=${email}    password=${senha}
     ${res}=    POST On Session    serve    /login    json=${login}
     ${token}=    Set Variable    ${res.json()["authorization"]}
-    ${headers}=    Create Dictionary    Authorization=Bearer ${token}
+    ${headers}=    Create Dictionary    Authorization=${token}
     ${produto}=    Create Dictionary    nome=ProdutoUnico${rand}    preco=50    descricao=Teste    quantidade=5
     POST On Session    serve    /produtos    headers=${headers}    json=${produto}
     ${res_dup}=    POST On Session    serve    /produtos    headers=${headers}    json=${produto}    expected_status=any
@@ -60,7 +60,7 @@ CT035 - Cadastrar produto com campos obrigatórios ausentes
     ${login}=    Create Dictionary    email=${email}    password=${senha}
     ${res}=    POST On Session    serve    /login    json=${login}
     ${token}=    Set Variable    ${res.json()["authorization"]}
-    ${headers}=    Create Dictionary    Authorization=Bearer ${token}
+    ${headers}=    Create Dictionary    Authorization=${token}
     ${produto}=    Create Dictionary    nome=ProdutoSemPreco
     ${res}=    POST On Session    serve    /produtos    headers=${headers}    json=${produto}    expected_status=any
     Status Should Be    400    ${res}
@@ -75,8 +75,9 @@ CT036 - Atualizar produto com ID inexistente
     ${login}=    Create Dictionary    email=${email}    password=${senha}
     ${res}=    POST On Session    serve    /login    json=${login}
     ${token}=    Set Variable    ${res.json()["authorization"]}
-    ${headers}=    Create Dictionary    Authorization=Bearer ${token}
+    ${headers}=    Create Dictionary    Authorization=${token}
     ${produto}=    Create Dictionary    nome=Atualiza    preco=30    descricao=Update    quantidade=3
-    ${res}=    PUT On Session    serve    /produtos/000000000000000000000000    headers=${headers}    json=${produto}    expected_status=any
+    ${res}=    PUT On Session    serve    /produtos/1234567890abcdef    headers=${headers}    json=${produto}    expected_status=any
     Status Should Be    400    ${res}
     Should Contain    ${res.text}    Produto não encontrado
+

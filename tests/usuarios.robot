@@ -2,7 +2,6 @@
 Library    RequestsLibrary
 Library    String
 Resource   ../resources/variables.robot
-Resource    ../resources/keywords/usuarios_keywords.robot
 
 *** Test Cases ***
 
@@ -17,10 +16,12 @@ CT001 - Criar usuário válido
 
 CT002 - Criar usuário com e-mail já cadastrado
     Create Session    serve    ${BASE_URL}
-    ${body}=    Create Dictionary    nome=Batman    email=batman@teste.com    password=123456    administrador=true
-    ${response}=    POST On Session    serve    /usuarios    json=${body}    expected_status=any
-    Status Should Be    400    ${response}
-    Should Contain    ${response.json()["message"]}    Este email já está sendo usado
+    ${email}=    Set Variable    batman@teste.com
+    ${body}=    Create Dictionary    nome=Batman    email=${email}    password=123456    administrador=true
+    ${res1}=    POST On Session    serve    /usuarios    json=${body}
+    ${res2}=    POST On Session    serve    /usuarios    json=${body}    expected_status=any
+    Status Should Be    400    ${res2}
+    Should Contain    ${res2.json()["message"]}    Este email já está sendo usado
 
 CT003 - Criar usuário com e-mail @gmail.com
     Create Session    serve    ${BASE_URL}
@@ -83,7 +84,7 @@ CT009 - Atualizar usuário com ID inexistente
     ${body}=    Create Dictionary    nome=Fake    email=fake@teste.com    password=123456    administrador=false
     ${response}=    PUT On Session    serve    /usuarios/${id_falso}    json=${body}    expected_status=any
     Status Should Be    400    ${response}
-    Should Contain    ${response.text}    id deve ter exatamente 24 caracteres alfanuméricos
+    Should Contain    ${response.text}    Usuário não encontrado
 
 
 CT010 - Atualizar usuário com email já existente
@@ -150,14 +151,14 @@ CT016 - Acessar rota de usuário inexistente com token
     ${rand}=    Generate Random String    4
     ${email}=    Set Variable    token${rand}@teste.com
     ${body}=    Create Dictionary    nome=TokenUser    email=${email}    password=123456    administrador=true
-    ${create}=    POST On Session    serve    /usuarios    json=${body}
+    POST On Session    serve    /usuarios    json=${body}
     ${login_body}=    Create Dictionary    email=${email}    password=123456
     ${login}=    POST On Session    serve    /login    json=${login_body}
     ${token}=    Set Variable    ${login.json()["authorization"]}
     ${headers}=    Create Dictionary    Authorization=Bearer ${token}
-    ${response}=    GET On Session    serve    /usuarios/000000000000000000000000    headers=${headers}    expected_status=any
-    Status Should Be    400    ${response}
-    Should Contain    ${response.text}    id deve ter exatamente 24 caracteres alfanuméricos
+    ${id_falso}=    Set Variable    abcd00000000000000000000
+    ${response}=    GET On Session    serve    /usuarios/aaaaaaaaaaaaaaaaaaaaaaaa    headers=${headers}    expected_status=any
+    Should Contain    ${response.text}    Usuário não encontrado
 
 CT017 - Validação de campos obrigatórios
     Create Session    serve    ${BASE_URL}

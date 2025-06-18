@@ -1,64 +1,95 @@
-# Melhorias no Planejamento de Testes – ServeRest API
 
-## 1. Resumo das Melhorias Aplicadas
+# 📚 Plano de Testes – ServeRest API (Challenge 03)
 
-- Padronização e reescrita de todos os 58 testes manuais.
-- Organização dos testes por funcionalidades: Usuários, Login, Produtos e Carrinho.
-- Inclusão de cenários negativos, testes com dados inválidos e validações de campos obrigatórios.
-- Migração completa dos testes para o plugin QAlity no Jira, com visibilidade gráfica das execuções.
-- Priorização de testes críticos e de alto impacto funcional.
+> **Versão:** 2.0  |  **Autor:** Ádony Lagares Guimarães  |  **Última atualização:** 15 / 06 / 2025
 
 ---
 
-## 2. Cálculo e Descrição da Cobertura de Testes
-
-A API ServeRest foi analisada com base em sua documentação e estrutura de endpoints REST. Foram consideradas as funcionalidades principais:
-
-- Usuários
-- Login
-- Produtos
-- Carrinho
-
-Para cada uma, foram criados testes que cobrem:
-- Cenários positivos (happy path)
-- Cenários negativos (dados inválidos, campos ausentes)
-- Casos de autenticação/autorização
-- Erros de negócio
-
-### 🔢 Cálculo da Cobertura:
-- Total de funcionalidades cobertas: **4**
-- Total de testes implementados: **58**
-- Total de endpoints testados: **100%**
-
-> A cobertura de testes foi estimada como **100% funcional**, com pelo menos 10 a 15 testes por área, validando todas as variações de entrada e resposta esperadas.
+## 1 · Visão Geral
+Este documento descreve **como o plano de testes original da API ServeRest foi aprimorado** após os feedbacks do Challenge 02 e a execução prática no Challenge 03. As melhorias focam em padronização, cobertura, rastreabilidade (QAlity + Jira) e automação com Robot Framework.
 
 ---
 
-## 3. Planejamento de Automação com Robot Framework
+## 2 · Principais Melhorias Implementadas
+| 🔄 Área | Situação Antes | Melhoria Aplicada |
+|---------|---------------|-------------------|
+| **Padronização** | Casos de teste escritos em formatos variados | Reescrita **100 %** dos 58 testes manuais seguindo o template TC‑ID / Objetivo / Pré‑condições / Passos / Resultado Esperado |
+| **Organização** | Lista única de cenários | Testes **agrupados por funcionalidade** → Usuários · Login · Produtos · Carrinho |
+| **Cobertura** | Sem cálculo formal | Inclusão da **fórmula** de cobertura e valores reais (vide seção 3) |
+| **Cenários Negativos** | Pontuais | Ampliação de cenários de erro → dados inválidos, campos ausentes, tokens inválidos |
+| **Gestão em Jira** | Planilha offline | Migração completa para **QAlity** com ciclo “Challenge 03 – ServeRest”, métricas em tempo real |
+| **Priorização** | Ordem genérica | Matriz de Risco + Tabela de Priorização (alta → média → baixa) |
+| **Automação** | Apenas lista de candidatos | Estrutura Robot criada, primeiros 15 % dos testes já automatizados |
 
-Mesmo antes da implementação da automação, já foi estruturada a abordagem inicial para testes automatizados.
+---
 
-### 🧪 Testes candidatos à automação:
-- CT001 - Criar usuário válido
-- CT021 - Login com credenciais válidas
-- CT031 - Cadastrar produto com autenticação
-- CT045 - Criar carrinho com produtos válidos
-- CT055 - Cancelar carrinho e restaurar estoque
+## 3 · Cobertura de Testes
+- **Funcionalidades consideradas:** Usuários · Login · Produtos · Carrinho  → **4/4 = 100 %**
+- **Testes planejados:** 58  
+- **Testes executados:** 36 (31 ✓ · 5 ✕)  
 
-### 🗂 Estrutura de diretórios planejada:
+> **Cobertura (%) = (Testes Executados ÷ Testes Planejados) × 100**  
+> **Cobertura atual:** `(36 ÷ 58) × 100 ≈ 62,1 %`
+
+Os **31 testes aprovados** validam o fluxo principal (happy‑path) e os negativos críticos. Os **5 testes falhos** geraram issues Jira e permanecem em acompanhamento.
+
+---
+
+## 4 · Priorização de Execução
+1. **Alta** – Impacto funcional crítico (Usuário, Login, Produto em estoque)  
+2. **Média** – Fluxos de listagem/consulta e cenários de borda  
+3. **Baixa** – Validações cosméticas ou regras opcionais (ex.: `admin=false`)
+
+A priorização é mapeada na matriz de risco e reflete‑se em etiquetas no QAlity (`High / Medium / Low`).
+
+---
+
+## 5 · Automação de Testes
+
+### 5.1 Abordagem Técnica
+- **Framework:** Robot Framework 6 + RequestsLibrary  
+- **Linguagem:** Python 3.13  
+- **Execução:** `robot -d reports tests/`
+- **Controle de dados:** JSON dinâmico com strings randômicas para manter idempotência
+
+### 5.2 Estrutura de Diretórios
+```text
+📁 project-root
+│
+├─ tests/
+│   ├─ usuarios.robot
+│   ├─ login.robot
+│   ├─ produtos.robot
+│   └─ carrinho.robot
+│
+├─ resources/
+│   ├─ keywords.robot   # Keywords reutilizáveis (login, token, CRUD)
+│   └─ variables.robot  # Base URL, headers, massa de dados padrão
+└─ reports/             # output.xml · log.html · report.html
 ```
-/tests
-  ├── usuarios.robot
-  ├── login.robot
-  ├── produtos.robot
-  ├── carrinho.robot
-/resources
-  ├── keywords.robot
-  └── variables.robot
-```
 
-### ⚙ Estratégia de automação:
-- Utilização do **Robot Framework** com **RequestsLibrary** para testes de APIs REST.
-- Testes organizados por funcionalidades.
-- Uso de `tags` para controle de execução e priorização.
-- Keywords reutilizáveis para facilitar manutenção e padronização.
+### 5.3 Pipeline CI
+1. **Checkout** → Instala dependências  
+2. **`robot` run** em paralelo por tag  
+3. **Publicação de relatórios** (`log.html`) como artefato  
+4. **Webhook** atualiza status no QAlity / Jira
+
+### 5.4 Road‑map de Automação
+| Sprint | Escopo | % Automatizado |
+|--------|--------|----------------|
+| 1 | Login happy & negative | 100 % |
+| 2 | CRUD Usuários | 70 % |
+| 3 | Produtos críticos | 40 % |
+| 4 | Carrinho completo | Planned |
+
+---
+
+## 6 · Rastreabilidade no QAlity
+Cada **TC‑ID** manual possui:
+- Link para execução automática (se já implementado)  
+- Evidências: resposta JSON + screenshot (quando aplicável)  
+- Histórico de execuções (pass/fail) exibido no gráfico burndown do ciclo
+
+---
+
+> _“Testing shows the presence, not the absence, of bugs.”_ – E.W. Dijkstra
